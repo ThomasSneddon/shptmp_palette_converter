@@ -25,7 +25,13 @@ int main(int argc, const char** argv)
 	uint32_t starttime = timeGetTime();
 	for (int i = 1; i < argc; i++)
 	{
+
+#ifndef _SHP_CONVERTER
 		thomas::tmpfile file(argv[i]);
+#else
+		thomas::shpfile file(argv[i]);
+#endif
+
 		if (!file.is_loaded())
 			std::cout << "File : " << argv[i] << " is not loaded.\n";
 

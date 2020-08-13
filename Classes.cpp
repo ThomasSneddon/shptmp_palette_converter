@@ -12,11 +12,12 @@ tmpfile::tmpfile(std::string filename) :tmpfile()
 void tmpfile::clear()
 {
     _imageheaders.clear();
+    _original_offsets.clear();
 }
 
 bool tmpfile::is_loaded()
 {
-    return !_imageheaders.empty();
+    return !_imageheaders.empty() && !_original_offsets.empty();
 }
 
 bool tmpfile::load(std::string filename)
@@ -37,15 +38,14 @@ bool tmpfile::load(std::string filename)
 
     file.read(reinterpret_cast<char*>(buffer.data()), filesize);
 
-    std::vector<uint32_t> header_offsets;
     tmp_image_header temp;
 
     memcpy_s(&_fileheader, sizeof _fileheader, buffer.data(), sizeof _fileheader);
-    header_offsets.resize(block_count());
+    _original_offsets.resize(block_count());
 
     size_t current_valid_index = 0;
-    memcpy_s(header_offsets.data(), block_count() * sizeof uint32_t, &buffer[sizeof _fileheader], block_count() * sizeof uint32_t);
-    for (size_t offset : header_offsets)
+    memcpy_s(_original_offsets.data(), block_count() * sizeof uint32_t, &buffer[sizeof _fileheader], block_count() * sizeof uint32_t);
+    for (size_t offset : _original_offsets)
     {
         const size_t header_size = sizeof tmp_image_header - sizeof std::vector<byte>;
         if (offset)
@@ -184,13 +184,15 @@ bool tmpfile::save(std::string filename)
     uint32_t current_offset = sizeof _fileheader + block_count() * sizeof uint32_t;
     size_t block_data_size = image_header_size + tile_size() * 2;
 
+    //memset(offsets, 0, block_count() * sizeof uint32_t);
+    memcpy_s(offsets, block_count() * sizeof uint32_t, _original_offsets.data(), block_count() * sizeof uint32_t);
     for (size_t i = 0; i < valid_block_count(); i++)
     {
         auto& block_data = _imageheaders[i];
         memcpy_s(&filebuffer[current_offset], image_header_size, &block_data, image_header_size);
         memcpy_s(&filebuffer[current_offset + image_header_size], block_data.pixels.size(), block_data.pixels.data(), block_data.pixels.size());
 
-        offsets[i] = current_offset;
+        //offsets[i] = current_offset;
         current_offset += image_header_size + block_data.pixels.size();
     }
 

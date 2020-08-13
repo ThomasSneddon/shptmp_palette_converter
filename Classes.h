@@ -96,6 +96,7 @@ public:
 private:
 	tmp_file_header _fileheader{ 0 };
 	std::vector<tmp_image_header> _imageheaders;
+	std::vector<uint32_t> _original_offsets;
 };
 
 struct rectangle
@@ -163,7 +164,7 @@ public:
 	palette() = default;
 	palette(std::string filename);
 	~palette() = default;
-
+	
 	bool load(std::string filename);
 	void clear();
 	bool is_loaded();
