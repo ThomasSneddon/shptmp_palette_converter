@@ -175,4 +175,43 @@ private:
 	std::vector<color> _entries;
 };
 
+class config
+{
+public:
+	using value_type = std::vector<std::string>;//a value consists of multiple splited values
+	using section_type = std::unordered_map<std::string, value_type>;//a section contains multiple key-value pairs
+	using config_type = std::unordered_map<std::string, section_type>;//a config contains multiple sections
+
+	config() = default;
+	~config() = default;
+	config(std::string filename);
+
+	//
+	bool load(std::string filename);
+	bool is_loaded();
+	void clear();
+
+	//
+	section_type operator[](std::string section);
+	section_type section(std::string name);
+	value_type value(std::string secton, std::string key);
+	std::vector<int> value_as_int(std::string section, std::string key);
+	std::vector<bool> value_as_bool(std::string section, std::string key, bool def);
+	int read_int(std::string section, std::string key, int def);
+	bool read_bool(std::string section, std::string key, bool def);
+	std::string read_string(std::string section, std::string key, std::string def);
+
+private:
+	void trim(std::string& string, const char* filter = " \t\r\n");
+	void remove_annotation(std::string& string);
+	std::string split(std::string& left, char delim = '=');
+	value_type split_values(std::string string);
+	bool is_section(const std::string& string);
+	bool is_empty(const std::string string);
+	void convert_section_name(std::string& string);
+	bool is_annotation(const std::string& string);
+
+	config_type _config;
+};
+
 CLASSES_END
